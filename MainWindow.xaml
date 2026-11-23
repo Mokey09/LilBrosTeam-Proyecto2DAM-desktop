@@ -220,7 +220,12 @@
 
         <!-- ================= PÁGINA DE PROFESORES ================= -->
         <views:ProfesoresView x:Name="VistaProfesores" Grid.Column="1" Grid.ColumnSpan="2"
-                              Visibility="Collapsed"/>
+                              Visibility="Collapsed" ModificarSolicitado="VistaProfesores_ModificarSolicitado"/>
+
+        <!-- ================= PÁGINA DE EDICIÓN DE UN PROFESOR (solo DIRECTOR) ================= -->
+        <views:EditarProfesorView x:Name="VistaEditarProfesor" Grid.Column="1" Grid.ColumnSpan="2"
+                                  Visibility="Collapsed"
+                                  Guardado="VistaEditarProfesor_Guardado" Cancelado="VistaEditarProfesor_Cancelado"/>
 
         <!-- ================= PÁGINA DE LOGIN ================= -->
         <views:LoginView x:Name="VistaLogin" Grid.Column="1" Grid.ColumnSpan="2"
