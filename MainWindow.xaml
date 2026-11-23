@@ -192,7 +192,7 @@
                 <!-- Descripción -->
                 <DockPanel Grid.Row="3" Margin="0,0,0,16">
                     <TextBlock DockPanel.Dock="Top" Text="Descripción" Style="{StaticResource Etiqueta}"/>
-                    <TextBox FontSize="14" Padding="6" AcceptsReturn="True" TextWrapping="Wrap"
+                    <TextBox MaxLength="255" FontSize="14" Padding="6" AcceptsReturn="True" TextWrapping="Wrap"
                              VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top"
                              Text="{Binding DiaActual.Descripcion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                 </DockPanel>
