@@ -113,7 +113,7 @@
                         Content="&#xE716;" ToolTip="Profesores" Click="BtnProfesores_Click"/>
                 <!-- Botón para ir a modificar calendario -->
                 <Button x:Name="BtnModificarCalendario" Style="{StaticResource BotonLateral}"
-                        Content="&#xE787;" ToolTip="Modificar calendario" Click="BtnModificarCalendario_Click"/>
+                        Content="&#xE787;" ToolTip="Modificar calendario" Click="BtnCalendario_Click"/>
             </StackPanel>
         </Border>
 
