@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Content Include="logo.ico" />
+    <Resource Include="Assets\logoMZ.png" />
   </ItemGroup>
 
 </Project>

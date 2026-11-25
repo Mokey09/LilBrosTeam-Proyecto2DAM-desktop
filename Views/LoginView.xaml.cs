@@ -95,6 +95,6 @@ public partial class LoginView : UserControl
         TxtEmail.IsEnabled = !ocupado;
         TxtPassword.IsEnabled = !ocupado;
         BtnEntrar.IsEnabled = !ocupado;
-        BtnEntrar.Content = ocupado ? "Entrando…" : "Entrar";
+        BtnEntrar.Content = ocupado ? "Entrando…" : "Iniciar sesión";
     }
 }
