@@ -29,6 +29,8 @@ public partial class MainWindow : Window
         ZonaCalendario.Visibility = Visibility.Collapsed;
         PanelDia.Visibility = Visibility.Collapsed;
         VistaProfesores.Visibility = Visibility.Collapsed;
+        VistaEditarProfesor.Visibility = Visibility.Collapsed;
+        VistaEditarProfesor.Limpiar();
         _vm.LimpiarProfesores(); // sin sesión no debe quedar ningún dato en pantalla
 
         VistaLogin.Preparar(aviso);
@@ -41,6 +43,7 @@ public partial class MainWindow : Window
     {
         VistaLogin.Visibility = Visibility.Collapsed;
         VistaProfesores.Visibility = Visibility.Collapsed;
+        VistaEditarProfesor.Visibility = Visibility.Collapsed;
         ZonaCalendario.Visibility = Visibility.Visible;
         PanelDia.Visibility = Visibility.Visible;
 
@@ -52,7 +55,19 @@ public partial class MainWindow : Window
         VistaLogin.Visibility = Visibility.Collapsed;
         ZonaCalendario.Visibility = Visibility.Collapsed;
         PanelDia.Visibility = Visibility.Collapsed;
+        VistaEditarProfesor.Visibility = Visibility.Collapsed;
         VistaProfesores.Visibility = Visibility.Visible;
+
+        ActualizarBarraLateral();
+    }
+
+    private void MostrarEditarProfesor()
+    {
+        VistaLogin.Visibility = Visibility.Collapsed;
+        ZonaCalendario.Visibility = Visibility.Collapsed;
+        PanelDia.Visibility = Visibility.Collapsed;
+        VistaProfesores.Visibility = Visibility.Collapsed;
+        VistaEditarProfesor.Visibility = Visibility.Visible;
 
         ActualizarBarraLateral();
     }
@@ -114,6 +129,33 @@ public partial class MainWindow : Window
         // Si la sesión no es válida, el ViewModel avisa y se vuelve a la página de login.
         MostrarProfesores();
         await _vm.CargarProfesoresAsync();
+    }
+
+    /// <summary>"Modificar" en el listado: abre la página con el formulario del profesor seleccionado.</summary>
+    private async void VistaProfesores_ModificarSolicitado(object? sender, ProfesorDto profesor)
+    {
+        // Solo el DIRECTOR puede modificar profesores (la API también lo exige)
+        if (!Roles.EsDirector(SesionUsuario.Actual.Rol))
+        {
+            _vm.NotificarError("Solo los directores pueden modificar profesores.");
+            return;
+        }
+
+        // Se comprueba la sesión antes de hacer rellenar un formulario con la sesión caducada
+        if (!await _vm.VerificarSesionAsync()) return;
+
+        VistaEditarProfesor.Cargar(profesor);
+        MostrarEditarProfesor();
+    }
+
+    /// <summary>Cambios guardados: se vuelve al listado, que ya muestra los datos nuevos y el mensaje de éxito.</summary>
+    private void VistaEditarProfesor_Guardado(object? sender, EventArgs e) => MostrarProfesores();
+
+    /// <summary>Edición cancelada: se vuelve al listado sin cambios y sin dejar errores de la edición en pantalla.</summary>
+    private void VistaEditarProfesor_Cancelado(object? sender, EventArgs e)
+    {
+        _vm.MostrarResumenProfesores();
+        MostrarProfesores();
     }
 
     private async void BtnModificarCalendario_Click(object sender, RoutedEventArgs e)

@@ -46,6 +46,11 @@ public class ProfesorDto
     public string? Cuerpo { get; set; }
     public string? Telefono { get; set; }
     public string? Localidad { get; set; }
+    public string? Direccion { get; set; }
+    public int? CodigoPostal { get; set; }
+
+    /// <summary>Copia del profesor: el formulario de edición trabaja sobre la copia, no sobre el listado.</summary>
+    public ProfesorDto Copiar() => (ProfesorDto)MemberwiseClone();
 }
 
 /// <summary>
@@ -105,6 +110,46 @@ public sealed class ApiClient
         using var resp = await EnviarAsync(HttpMethod.Get, "profesores", token: token);
         ComprobarRespuesta(resp);
         return await LeerAsync<List<ProfesorDto>>(resp);
+    }
+
+    /// <summary>
+    /// PUT /profesores/{id} (solo DIRECTOR). Si <paramref name="nuevaContrasena"/> está vacía la API
+    /// conserva la contraseña actual. No se envía el grupo de alumnado: la API conserva el que tenga.
+    /// </summary>
+    public async Task<ProfesorDto> ActualizarProfesorAsync(string token, ProfesorDto p, string? nuevaContrasena)
+    {
+        // Jackson (API) distingue mayúsculas: los nombres van en camelCase
+        var cuerpo = new
+        {
+            nombre = p.Nombre,
+            apellidos = p.Apellidos,
+            dni = p.Dni,
+            email = p.Email,
+            contrasena = string.IsNullOrWhiteSpace(nuevaContrasena) ? null : nuevaContrasena,
+            codigoPostal = p.CodigoPostal,
+            localidad = p.Localidad,
+            telefono = p.Telefono,
+            direccion = p.Direccion,
+            cuerpo = p.Cuerpo,
+            rol = p.Rol,
+            especialidad = p.Especialidad,
+            departamento = p.Departamento
+        };
+
+        using var resp = await EnviarAsync(HttpMethod.Put, $"profesores/{p.Id}", cuerpo, token);
+
+        switch (resp.StatusCode)
+        {
+            case HttpStatusCode.BadRequest:
+                throw new ApiException("Nombre, apellidos, DNI y email son obligatorios.", resp.StatusCode);
+            case HttpStatusCode.NotFound:
+                throw new ApiException("Ese profesor ya no existe. Actualiza el listado.", resp.StatusCode);
+            case HttpStatusCode.Conflict:
+                throw new ApiException("Ya existe otro profesor con ese DNI o ese email.", resp.StatusCode);
+        }
+
+        ComprobarRespuesta(resp);
+        return await LeerAsync<ProfesorDto>(resp);
     }
 
     // ================= CALENDARIO =================

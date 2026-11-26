@@ -1,9 +1,12 @@
 <UserControl x:Class="CalendarioApp.Views.ProfesoresView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:CalendarioApp.Converters">
 
     <!-- El DataContext (MainViewModel) se hereda de la ventana: Profesores, Estado, EstadoEsError, NoOcupado -->
     <UserControl.Resources>
+        <conv:NoNuloConverter x:Key="NoNuloConverter"/>
+
         <Style x:Key="BotonActualizar" TargetType="Button">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background" Value="#2563EB"/>
@@ -44,6 +47,11 @@
             <DockPanel Grid.Row="0" Margin="0,0,0,8">
                 <Button DockPanel.Dock="Right" Content="Actualizar" Style="{StaticResource BotonActualizar}"
                         IsEnabled="{Binding NoOcupado}" Click="BtnActualizar_Click"/>
+                <!-- Modificar: solo activo con un profesor seleccionado (esta página solo la ve el DIRECTOR) -->
+                <Button x:Name="BtnModificar" DockPanel.Dock="Right" Content="Modificar" Margin="0,0,12,0"
+                        Style="{StaticResource BotonActualizar}"
+                        IsEnabled="{Binding SelectedItem, ElementName=GridProfesores, Converter={StaticResource NoNuloConverter}}"
+                        ToolTip="Modifica los datos del profesor seleccionado" Click="BtnModificar_Click"/>
                 <StackPanel>
                     <TextBlock Text="Profesores" FontSize="28" FontWeight="Bold" Foreground="#111827"/>
                     <TextBlock Text="Listado de todos los profesores del centro" FontSize="13" Foreground="#6B7280"/>
@@ -64,13 +72,14 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <DataGrid Grid.Row="2" ItemsSource="{Binding Profesores}"
+            <DataGrid x:Name="GridProfesores" Grid.Row="2" ItemsSource="{Binding Profesores}"
                       AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False"
                       CanUserDeleteRows="False" CanUserResizeRows="False" SelectionMode="Single"
                       HeadersVisibility="Column" GridLinesVisibility="Horizontal"
                       HorizontalGridLinesBrush="#E5E7EB" BorderThickness="0" Background="White"
                       RowBackground="White" AlternatingRowBackground="#F9FAFB"
-                      FontSize="13" RowHeight="32" ColumnHeaderHeight="34">
+                      FontSize="13" RowHeight="32" ColumnHeaderHeight="34"
+                      MouseDoubleClick="GridProfesores_MouseDoubleClick">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Nombre" Binding="{Binding Nombre}" Width="Auto"/>
                     <DataGridTextColumn Header="Apellidos" Binding="{Binding Apellidos}" Width="Auto"/>

@@ -143,15 +143,69 @@ public class MainViewModel : INotifyPropertyChanged
 
         var lista = await _api.ObtenerProfesoresAsync(Token);
 
-        Profesores.Clear();
-        foreach (var p in lista
-                     .OrderBy(p => p.Apellidos, StringComparer.CurrentCultureIgnoreCase)
-                     .ThenBy(p => p.Nombre, StringComparer.CurrentCultureIgnoreCase))
-            Profesores.Add(p);
-
-        MostrarOk(lista.Count == 0 ? "No hay profesores registrados" : $"{lista.Count} profesores");
+        RellenarProfesores(lista);
+        MostrarResumenProfesores();
         return true;
     });
+
+    /// <summary>
+    /// Guarda los cambios de un profesor (solo DIRECTOR). <paramref name="nuevaContrasena"/> vacía = no se cambia.
+    /// Devuelve true si la API aceptó los cambios; en ese caso el listado ya muestra los datos nuevos.
+    /// </summary>
+    public Task<bool> ActualizarProfesorAsync(ProfesorDto datos, string? nuevaContrasena) =>
+        EjecutarAsync(async () =>
+        {
+            // La API solo permite modificar profesores al rol DIRECTOR: se evita la llamada si no lo es
+            if (!Roles.EsDirector(SesionUsuario.Actual.Rol))
+            {
+                MostrarError("Solo los directores pueden modificar profesores.");
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(datos.Nombre) || string.IsNullOrWhiteSpace(datos.Apellidos) ||
+                string.IsNullOrWhiteSpace(datos.Dni) || string.IsNullOrWhiteSpace(datos.Email))
+            {
+                MostrarError("Nombre, apellidos, DNI y email son obligatorios.");
+                return false;
+            }
+
+            if (!datos.Email.Contains('@'))
+            {
+                MostrarError("El email no es válido.");
+                return false;
+            }
+
+            var actualizado = await _api.ActualizarProfesorAsync(Token, datos, nuevaContrasena);
+
+            // Se sustituye el profesor en el listado sin volver a descargarlo todo
+            RellenarProfesores(Profesores.Select(p => p.Id == actualizado.Id ? actualizado : p).ToList());
+
+            // Si el director se ha editado a sí mismo, la sesión debe reflejar su rol actual
+            if (actualizado.Id == SesionUsuario.Actual.Id && !string.IsNullOrEmpty(actualizado.Rol))
+                SesionUsuario.Actual.ActualizarRol(actualizado.Rol);
+
+            MostrarOk($"Profesor {actualizado.Nombre} {actualizado.Apellidos} actualizado");
+            return true;
+        });
+
+    /// <summary>Muestra en el estado cuántos profesores hay en el listado.</summary>
+    public void MostrarResumenProfesores() =>
+        MostrarOk(Profesores.Count == 0 ? "No hay profesores registrados" : $"{Profesores.Count} profesores");
+
+    /// <summary>Permite que una vista (p. ej. el formulario de edición) muestre un error en la barra de estado.</summary>
+    public void NotificarError(string mensaje) => MostrarError(mensaje);
+
+    private void RellenarProfesores(IEnumerable<ProfesorDto> lista)
+    {
+        var ordenada = lista
+            .OrderBy(p => p.Apellidos, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(p => p.Nombre, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+
+        Profesores.Clear();
+        foreach (var p in ordenada)
+            Profesores.Add(p);
+    }
 
     /// <summary>Vacía el listado de profesores (al cerrar sesión no deben quedar datos en pantalla).</summary>
     public void LimpiarProfesores() => Profesores.Clear();
